@@ -341,19 +341,3 @@ class HospitalSystem {
     return null;
   }
 }
-
-class PatientLocation {
-  final RoomType roomType;
-  final String roomId;
-  final int roomIndexWithinType;
-  final String bedId;
-  final int bedIndexWithinRoom;
-
-  PatientLocation({
-    required this.roomType,
-    required this.roomId,
-    required this.roomIndexWithinType,
-    required this.bedId,
-    required this.bedIndexWithinRoom,
-  });
-}
