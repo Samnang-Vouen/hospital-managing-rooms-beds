@@ -1,8 +1,7 @@
 import '../models/patient.dart';
 import '../models/room.dart';
 import '../models/enum.dart';
-import 'dart:io';
-import 'dart:convert';
+import '../../data/storing_data_repository.dart';
 
 class HospitalSystem {
   final List<EmergencyRoom> emergencyRooms;
@@ -182,104 +181,33 @@ class HospitalSystem {
         ...generalVipRooms
       ];
 
-  Map<String, Map<String, int>> getRoomStatus() {
-    Map<String, Map<String, int>> status = {};
-
-    for (var room in allRooms) {
-      final key = room.roomType.toString().split('.').last;
-      status.putIfAbsent(
-          key,
-          () => {
-                'rooms': 0,
-                'available': 0,
-                'occupied': 0,
-                'total': 0,
-              });
-      int available =
+  //AI Generated
+  Map<RoomType, RoomTypeStats> getRoomStatus() {
+    final status = <RoomType, RoomTypeStats>{};
+    for (final room in allRooms) {
+      final type = room.roomType;
+      final availableCount =
           room.beds.where((b) => b.bedStatus == BedStatus.Available).length;
-      int total = room.beds.length;
-      int occupied = total - available;
+      final totalCount = room.beds.length;
+      final occupiedCount = totalCount - availableCount;
 
-      status[key]!['rooms'] = (status[key]!['rooms'] ?? 0) + 1;
-      status[key]!['available'] = (status[key]!['available'] ?? 0) + available;
-      status[key]!['occupied'] = (status[key]!['occupied'] ?? 0) + occupied;
-      status[key]!['total'] = (status[key]!['total'] ?? 0) + total;
+      final prev = status[type] ?? const RoomTypeStats();
+      status[type] = prev.add(
+        rooms: 1,
+        available: availableCount,
+        occupied: occupiedCount,
+        total: totalCount,
+      );
     }
-
     return status;
   }
 
   Future<void> saveData(String filePath) async {
-    Map<String, dynamic> data = {
-      'activePatients': activePatients.map((p) => p.toJson()).toList(),
-      'recoveredPatients': recoveredPatients.map((p) => p.toJson()).toList(),
-      'rooms': allRooms.map((r) => r.toJson()).toList(),
-    };
-
-    var file = File(filePath);
-    await file.writeAsString(jsonEncode(data));
+    await StoringDataRepository().saveData(this, filePath);
   }
 
   Future<void> loadData(String filePath) async {
-    var file = File(filePath);
-    if (!await file.exists()) return;
-
-    var jsonString = await file.readAsString();
-    if (jsonString.trim().isEmpty) {
-      return;
-    }
-    Map<String, dynamic> data = jsonDecode(jsonString);
-
-    activePatients.clear();
-    recoveredPatients.clear();
-    for (var p in data['activePatients']) {
-      activePatients.add(Patient.fromJson(p));
-    }
-    for (var p in data['recoveredPatients']) {
-      recoveredPatients.add(Patient.fromJson(p));
-    }
-
-    var roomList =
-        (data['rooms'] as List).map((r) => Rooms.fromJson(r)).toList();
-
-    emergencyRooms.clear();
-    icuRooms.clear();
-    icuVipRooms.clear();
-    generalRooms.clear();
-    generalVipRooms.clear();
-
-    for (var room in roomList) {
-      switch (room.roomType) {
-        case RoomType.Emergency:
-          emergencyRooms.add(room as EmergencyRoom);
-          break;
-        case RoomType.ICU:
-          icuRooms.add(room as ICURoom);
-          break;
-        case RoomType.ICUVIP:
-          icuVipRooms.add(room as ICUVipRoom);
-          break;
-        case RoomType.General:
-          generalRooms.add(room as GeneralRoom);
-          break;
-        case RoomType.GeneralVIP:
-          generalVipRooms.add(room as GeneralVIPRoom);
-          break;
-      }
-    }
-
-    for (final room in allRooms) {
-      for (final bed in room.beds) {
-        final bedPatient = bed.patient;
-        if (bedPatient == null) continue;
-        final match =
-            activePatients.where((p) => p.patientId == bedPatient.patientId);
-        if (match.isNotEmpty) {
-          bed.patient = match.first;
-          match.first.assignBed(bed.bedId);
-        }
-      }
-    }
+    await StoringDataRepository().loadData(this, filePath);
   }
 
   PatientLocation? findPatientLocation(Patient patient) {
@@ -310,4 +238,40 @@ class HospitalSystem {
     }
     return null;
   }
+}
+
+// AI Generated
+class RoomTypeStats {
+  final int rooms;
+  final int available;
+  final int occupied;
+  final int total;
+
+  const RoomTypeStats({
+    this.rooms = 0,
+    this.available = 0,
+    this.occupied = 0,
+    this.total = 0,
+  });
+
+  RoomTypeStats add({
+    int rooms = 0,
+    int available = 0,
+    int occupied = 0,
+    int total = 0,
+  }) {
+    return RoomTypeStats(
+      rooms: this.rooms + rooms,
+      available: this.available + available,
+      occupied: this.occupied + occupied,
+      total: this.total + total,
+    );
+  }
+
+  Map<String, int> toJson() => {
+        'rooms': rooms,
+        'available': available,
+        'occupied': occupied,
+        'total': total,
+      };
 }
