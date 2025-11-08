@@ -2,6 +2,7 @@ import 'dart:io';
 import '../domain/models/enum.dart';
 import '../domain/models/patient.dart';
 import '../domain/services/managing_rooms_and_beds.dart';
+import '../domain/models/room.dart';
 
 class HospitalConsoleUI {
   final HospitalSystem system = HospitalSystem();
@@ -95,7 +96,8 @@ class HospitalConsoleUI {
 
     await system.saveData(dataFilePath);
 
-    print('Patient ${patient.patientName} code updated to ${newCode}.');
+    print(
+        'Patient ${patient.patientName} code updated to ${enumName(newCode)}.');
   }
 
   Future<void> showActivePatients() async {
@@ -133,14 +135,14 @@ class HospitalConsoleUI {
     await system.loadData(dataFilePath);
 
     print('\n--- Room & Bed Availability ---');
-    var status = system.getRoomStatus();
-    status.forEach((roomType, data) {
+    final status = system.getRoomStatus();
+    status.forEach((type, stats) {
       print(
-          '$roomType → Rooms: ${data['rooms']} | Available: ${data['available']} | Occupied: ${data['occupied']} | Total: ${data['total']}');
+          '${enumName(type)} → Rooms: ${stats.rooms} | Available: ${stats.available} | Occupied: ${stats.occupied} | Total: ${stats.total}');
     });
 
     print('\n--- Per-room availability ---');
-    final byType = <RoomType, List<dynamic>>{};
+    final byType = <RoomType, List<Rooms>>{};
     for (final r in system.allRooms) {
       byType.putIfAbsent(r.roomType, () => []).add(r);
     }
