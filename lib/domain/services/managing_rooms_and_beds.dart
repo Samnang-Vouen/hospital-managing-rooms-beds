@@ -64,36 +64,6 @@ class HospitalSystem {
     }
   }
 
-  void admitPatientWithTargetRoom(Patient patient, {Rooms? targetRoom}) {
-    activePatients.add(patient);
-    patient.history.add(enumName(patient.code));
-
-    if (patient.code == PatientCode.Green) {
-      markAsRecovered(patient);
-      return;
-    }
-
-    if (targetRoom != null) {
-      movePatientToRoom(patient, targetRoom);
-      return;
-    }
-
-    switch (patient.code) {
-      case PatientCode.Black:
-        moveToEmergency(patient);
-        break;
-      case PatientCode.Red:
-        moveToICU(patient);
-        break;
-      case PatientCode.Yellow:
-        moveToGeneral(patient);
-        break;
-      case PatientCode.Green:
-        markAsRecovered(patient);
-        break;
-    }
-  }
-
   void updatePatientCode(Patient patient, PatientCode newCode) {
     updatePatientCodeWithTargetRoom(patient, newCode, targetRoom: null);
   }
