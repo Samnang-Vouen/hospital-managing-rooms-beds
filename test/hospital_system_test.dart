@@ -77,19 +77,30 @@ void main() {
   });
 
   group('HospitalSystem room status & persistence', () {
+    //AI Generated
     test('getRoomStatus aggregates counts', () {
       final hs = HospitalSystem();
-      final status = hs.getRoomStatus();
+      final status = hs.getRoomStatus(); // Map<RoomType, RoomTypeStats>
 
-      expect(status.keys,
-          containsAll(['Emergency', 'ICU', 'ICUVIP', 'General', 'GeneralVIP']));
+      expect(
+        status.keys,
+        containsAll([
+          RoomType.Emergency,
+          RoomType.ICU,
+          RoomType.ICUVIP,
+          RoomType.General,
+          RoomType.GeneralVIP
+        ]),
+      );
 
-      final emergencyTotal = status['Emergency']!['total']; // 5 rooms x 1 bed
-      final icuTotal = status['ICU']!['total']; // 15 rooms x 5 beds
-      final icuVipTotal = status['ICUVIP']!['total']; // 10 rooms x 1 bed
-      final generalTotal = status['General']!['total']; // 15 rooms x 10 beds
+      final emergencyTotal =
+          status[RoomType.Emergency]!.total; // 5 rooms x 1 bed
+      final icuTotal = status[RoomType.ICU]!.total; // 15 rooms x 5 beds
+      final icuVipTotal = status[RoomType.ICUVIP]!.total; // 10 rooms x 1 bed
+      final generalTotal =
+          status[RoomType.General]!.total; // 15 rooms x 10 beds
       final generalVipTotal =
-          status['GeneralVIP']!['total']; // 10 rooms x 1 bed
+          status[RoomType.GeneralVIP]!.total; // 10 rooms x 1 bed
 
       expect(emergencyTotal, 5 * 1);
       expect(icuTotal, 15 * 5);
